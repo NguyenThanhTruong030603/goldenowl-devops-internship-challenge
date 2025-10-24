@@ -22,7 +22,7 @@ jobs:
 
       - name: Deploy Node.js app to EC2
         run: |
-          ssh -i ~/.ssh/ec2_key.pem ubuntu@13.213.1.8 << 'EOF'
+          ssh -i ~/.ssh/ec2_key.pem ubuntu@47.129.216.11 << 'EOF'
             cd goldenowl-devops-internship-challenge
             git pull origin main
 
