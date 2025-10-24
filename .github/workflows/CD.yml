@@ -21,22 +21,16 @@ jobs:
           chmod 600 ~/.ssh/ec2_key.pem
           ssh-keyscan -H 47.129.216.11 >> ~/.ssh/known_hosts
 
-      - name: Deploy Node.js app with Docker to EC2
+      - name: Deploy Docker image to EC2
         run: |
           ssh -i ~/.ssh/ec2_key.pem ubuntu@47.129.216.11 << 'EOF'
-            cd goldenowl-devops-internship-challenge
-            git pull origin master
-            cd src
-            
-            # Dừng và xóa container cũ
+            # Pull latest Docker image
+            docker pull ${{ secrets.DOCKER_USERNAME }}/goldenowl-app:latest
+
+            # Stop and remove existing container
             docker stop goldenowl-app || true
             docker rm goldenowl-app || true
-            
-            # Build Docker image từ source code
-            docker build -t goldenowl-app .
-            
-            # Chạy container mới
-            docker run -d --name goldenowl-app -p 3000:3000 --restart unless-stopped goldenowl-app
-            
-            
+
+            # Run new container
+            docker run -d --name goldenowl-app -p 3000:3000 ${{ secrets.DOCKER_USERNAME }}/goldenowl-app:latest
           EOF
