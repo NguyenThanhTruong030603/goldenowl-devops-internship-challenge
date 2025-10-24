@@ -25,12 +25,12 @@ jobs:
         run: |
           ssh -i ~/.ssh/ec2_key.pem ubuntu@47.129.216.11 << 'EOF'
             # Pull latest Docker image
-            docker pull ${{ secrets.DOCKER_USERNAME }}/goldenowl-app:latest
+            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/goldenowl-app:latest
 
             # Stop and remove existing container
             docker stop goldenowl-app || true
             docker rm goldenowl-app || true
 
             # Run new container
-            docker run -d --name goldenowl-app -p 3000:3000 ${{ secrets.DOCKER_USERNAME }}/goldenowl-app:latest
+            docker run -d --name goldenowl-app -p 3000:3000 ${{ secrets.DOCKERHUB_USERNAME }}/goldenowl-app:latest
           EOF
