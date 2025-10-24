@@ -2,7 +2,7 @@ name: CI/CD Deploy Node.js App to EC2
 
 on:
   push:
-    branches: [ "main" ] # Tự động deploy khi push lên nhánh main
+    branches: [ "master" ] # Tự động deploy khi push lên nhánh main
   workflow_dispatch: # Cho phép chạy thủ công
 
 jobs:
@@ -23,15 +23,10 @@ jobs:
       - name: Deploy Node.js app to EC2
         run: |
           ssh -i ~/.ssh/ec2_key.pem ubuntu@13.213.1.8 << 'EOF'
-            cd TestCI-CD
+            cd goldenowl-devops-internship-challenge
             git pull origin main
 
-            # Cài Node.js nếu chưa có
-            if ! command -v node &> /dev/null
-            then
-              curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
-              sudo apt-get install -y nodejs
-            fi
+           
 
             # Cài dependencies
             npm install
