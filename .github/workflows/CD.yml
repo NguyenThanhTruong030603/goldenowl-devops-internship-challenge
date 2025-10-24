@@ -1,36 +1,44 @@
-# This is a basic workflow to help you get started with Actions
+name: CI/CD Deploy Node.js App to EC2
 
-name: CI
-
-# Controls when the workflow will run
 on:
-  # Triggers the workflow on push or pull request events but only for the "master" branch
   push:
-    branches: [ "master" ]
-  pull_request:
-    branches: [ "master" ]
+    branches: [ "main" ] # Tự động deploy khi push lên nhánh main
+  workflow_dispatch: # Cho phép chạy thủ công
 
-  # Allows you to run this workflow manually from the Actions tab
-  workflow_dispatch:
-
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
-  build:
-    # The type of runner that the job will run on
+  deploy:
     runs-on: ubuntu-latest
 
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v4
+      - name: Checkout source code
+        uses: actions/checkout@v4
 
-      # Runs a single command using the runners shell
-      - name: Run a one-line script
-        run: echo Hello, world!
-
-      # Runs a set of commands using the runners shell
-      - name: Run a multi-line script
+      - name: Setup SSH key for EC2
         run: |
-          echo Add other actions to build,
-          echo test, and deploy your project.
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SERVER_SSH_KEY }}" > ~/.ssh/ec2_key.pem
+          chmod 600 ~/.ssh/ec2_key.pem
+          ssh-keyscan -H 13.213.1.8 >> ~/.ssh/known_hosts
+
+      - name: Deploy Node.js app to EC2
+        run: |
+          ssh -i ~/.ssh/ec2_key.pem ubuntu@13.213.1.8 << 'EOF'
+            cd TestCI-CD
+            git pull origin main
+
+            # Cài Node.js nếu chưa có
+            if ! command -v node &> /dev/null
+            then
+              curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+              sudo apt-get install -y nodejs
+            fi
+
+            # Cài dependencies
+            npm install
+
+            # Dừng tiến trình cũ (nếu đang chạy)
+            pkill node || true
+
+            # Chạy lại server Node.js
+            nohup npm start >/dev/null 2>&1 &
+          EOF
